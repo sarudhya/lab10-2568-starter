@@ -31,10 +31,6 @@ export default function RandomUserPage() {
   };
 
   useEffect(() => {
-    if(isLoading != false) {
-      setIsLoading(false);
-      return;
-    }
 
     localStorage.setItem("genAmount", JSON.stringify(genAmount));
 
