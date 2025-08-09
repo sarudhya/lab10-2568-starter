@@ -1,12 +1,19 @@
 import { UserCard } from "../components/UserCard";
 import { cleanUser } from "../libs/CleanUser";
+import type { CardUserProps } from "../libs/CardUserType";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useEffect} from "react";
+
 export default function RandomUserPage() {
   const [users, setUsers] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [genAmount, setGenAmount] = useState(1);
+  const [genAmount, setGenAmount] = useState(() =>{
+    const num = window.localStorage.getItem("genAmount");
+    return num !== null ? JSON.parse(num): 1;
+  });
 
+  // บันทึกค่า genAmount ลง localStorage ทุกครั้งที่มันเปลี่ยน
+  
   const generateBtnOnClick = async () => {
     setIsLoading(true);
     const resp = await axios.get(
@@ -14,10 +21,25 @@ export default function RandomUserPage() {
     );
     setIsLoading(false);
     const users = resp.data.results;
+    
     //Your code here
+    const cleanUsers = users.map(cleanUser);
+    setUsers(cleanUsers);
     //Process result from api response with map function. Tips use function from /src/libs/CleanUser
     //Then update state with function : setUsers(...)
+    setIsLoading(false);
   };
+
+  useEffect(() => {
+    if(isLoading != false) {
+      setIsLoading(false);
+      return;
+    }
+
+    localStorage.setItem("genAmount", JSON.stringify(genAmount));
+
+  },[genAmount])
+
 
   return (
     <div style={{ maxWidth: "700px" }} className="mx-auto">
@@ -38,7 +60,7 @@ export default function RandomUserPage() {
       {isLoading && (
         <p className="display-6 text-center fst-italic my-4">Loading ...</p>
       )}
-      {users && !isLoading && users.map(/*code map rendering UserCard here */)}
+      {Array.isArray(users) && !isLoading && users.map((u: CardUserProps )=> < UserCard name={u.name} imgUrl={u.imgUrl} address={u.address} email={u.email} />)}
     </div>
   );
 }
